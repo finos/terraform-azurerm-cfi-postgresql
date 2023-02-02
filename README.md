@@ -1,21 +1,39 @@
 # Terraform Child Module Template
 
-## To get a new child module
+This terraform script provisions:
++ azure postresql Single Server with a database
++ private endpoint for postgresql server
 
-To clone this repo for a new child module, please create an issue using the following format:
+Prerequisites:
++ VNet and Subnet already provisioned in Resource Group.
 
-- **Title:**  `Create repo: your-repo-name`
-- **Subject:** *A short blurb explaining what this repo is for and who will contribute to it*
+## How to use
 
-Discussion from the community and approval from the maintainers should then take place. Upon maintainer approval, a FINOS technical support staff member should be contacted and assigned the issue.
+All variable are set in [terraform.tfvars](terraform.tfvars) these should be changed for each application team.
 
-## After your new repo is created
+Variables that would need to change are marked as `<change-me>`.
 
-Adjust this readme as part of your first commit after creating a repository from this template.
+More detail on each variable can be found in the `Inputs` section below
 
-[See here](https://github.com/terraform-docs/terraform-docs) for more information about the Terraform docs generator.
+## How do I connect to my new Azure PostgreSQL server?
+As we are using a private endpoint with the postgres server to securely connect from on-prem, the fully qualified domain name will not be reachable until a dns record is set for it. (This is the same process as for the storage account).
 
-Example of generated docs is below.
+Meanwhile the private ip can be used to connect. The private ip is an output from the terraform module, but it can also be looked up in th portal under the private endpoint resource.
+
+To connect you can use your favorite IDE, SQL tool or command line.
+
+### Oracle SQL Developer with PostgreSQL driver
+
+	Username: <username>@<postgres-server-name>
+	Password: <password>
+	Hostname: <postgres-private-ip>:5432/<database-name>?sslmode=require&ssl=true
+	Port: THIS IS EMPTY
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| azurerm | 2.7.0 |
 
 -----
 
@@ -41,15 +59,45 @@ No providers.
 
 ### Requirements
 
-No requirements.
+| Name | Version |
+|------|---------|
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | =2.7.0 |
 
 ### Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_auto_grow_enabled"></a> [auto\_grow\_enabled](#input\_auto\_grow\_enabled) | Enable auto grow for Azure postgres | `bool` | n/a | yes |
+| <a name="input_backup_retention_days"></a> [backup\_retention\_days](#input\_backup\_retention\_days) | Number of days to retain backups | `number` | n/a | yes |
+| <a name="input_database_login"></a> [database\_login](#input\_database\_login) | Login for the database | `string` | n/a | yes |
+| <a name="input_database_name"></a> [database\_name](#input\_database\_name) | Name for database in postgres | `string` | n/a | yes |
+| <a name="input_database_password"></a> [database\_password](#input\_database\_password) | Password for the database | `string` | n/a | yes |
+| <a name="input_geo_redundent_enabled"></a> [geo\_redundent\_enabled](#input\_geo\_redundent\_enabled) | Enable geo redundency for Azure postgres | `bool` | n/a | yes |
+| <a name="input_postgres_location"></a> [postgres\_location](#input\_postgres\_location) | Location of postgres server | `string` | n/a | yes |
+| <a name="input_postgres_name"></a> [postgres\_name](#input\_postgres\_name) | Name for postgres server | `string` | n/a | yes |
+| <a name="input_postgres_resource_group_location"></a> [postgres\_resource\_group\_location](#input\_postgres\_resource\_group\_location) | Resource group location for potgresql server | `string` | n/a | yes |
+| <a name="input_postgres_resource_group_name"></a> [postgres\_resource\_group\_name](#input\_postgres\_resource\_group\_name) | Resource group name for potgresql server | `string` | n/a | yes |
+| <a name="input_postgres_resource_group_tags"></a> [postgres\_resource\_group\_tags](#input\_postgres\_resource\_group\_tags) | Resource group tags for potgresql server | `map(any)` | n/a | yes |
+| <a name="input_postgres_tags"></a> [postgres\_tags](#input\_postgres\_tags) | n/a | `map(any)` | n/a | yes |
+| <a name="input_postgres_version"></a> [postgres\_version](#input\_postgres\_version) | Version for postgres server | `string` | n/a | yes |
+| <a name="input_private_endpoint_location"></a> [private\_endpoint\_location](#input\_private\_endpoint\_location) | Location for privete endpoint | `string` | n/a | yes |
+| <a name="input_private_endpoint_name"></a> [private\_endpoint\_name](#input\_private\_endpoint\_name) | Private endpoint name | `string` | n/a | yes |
+| <a name="input_private_service_connection_name"></a> [private\_service\_connection\_name](#input\_private\_service\_connection\_name) | Private service connection name | `string` | n/a | yes |
+| <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name) | Postres sku name (GP\_Gen5\_2) | `string` | n/a | yes |
+| <a name="input_storagemb"></a> [storagemb](#input\_storagemb) | Database storage in megabytes | `string` | n/a | yes |
+| <a name="input_subnet_name"></a> [subnet\_name](#input\_subnet\_name) | n/a | `string` | n/a | yes |
+| <a name="input_vnet_name"></a> [vnet\_name](#input\_vnet\_name) | Target vnet name | `string` | n/a | yes |
+| <a name="input_vnet_resource_group_name"></a> [vnet\_resource\_group\_name](#input\_vnet\_resource\_group\_name) | Target resource group for vnet | `string` | n/a | yes |
 
 ### Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_dbname"></a> [dbname](#output\_dbname) | n/a |
+| <a name="output_postgres_private_ip"></a> [postgres\_private\_ip](#output\_postgres\_private\_ip) | n/a |
+| <a name="output_server_fqdn"></a> [server\_fqdn](#output\_server\_fqdn) | n/a |
+| <a name="output_server_name"></a> [server\_name](#output\_server\_name) | n/a |
+| <a name="output_username"></a> [username](#output\_username) | n/a |
 
 ### Resources
 
@@ -107,10 +155,3 @@ Distributed under the
 SPDX-License-Identifier: [Apache-2.0](https://spdx.org/licenses/Apache-2.0)
 <!-- END_TF_DOCS -->
 
-Run this when you create a repo: 
-
-```sh
-echo '/usr/local/bin/terraform-docs md --output-file README.md .' >> .git/hooks/pre-commit && chmod a+x .git/hooks/pre-commit
-```
-
-Then delete this message.
